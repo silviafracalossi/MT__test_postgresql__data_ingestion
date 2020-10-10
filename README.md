@@ -9,10 +9,10 @@ Tester of the Postgresql ability of ingesting time series data
 
 ## Installation
 - Create the folder "data";
-- Inside the folder "data", copy-paste the printers' parsed log files;
+  - Inside the folder, copy-paste the printers' parsed log files;
 - Create the folder "resources";
-- Inside the folder "resources", create a file called "server_postgresql_credentials.txt", containing the username (first line) and the password (second line) to access the server PostgreSQL database;
-- Inside the folder "resources", copy-paste the PostgreSQL driver (called "postgresql-42.2.14.jar");
+  - Inside the folder, create a file called "server_postgresql_credentials.txt", containing the username (first line) and the password (second line) to access the server PostgreSQL database;
+  - Inside the folder, copy-paste the PostgreSQL driver (called "postgresql-42.2.14.jar");
 
 
 ## Running the project
