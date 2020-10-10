@@ -1,1 +1,8 @@
+
+build/*
+data/*
+logs/*
+resources/*
 src/*/*
+
+desktop.ini
