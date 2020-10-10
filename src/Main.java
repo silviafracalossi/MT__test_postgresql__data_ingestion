@@ -37,12 +37,20 @@ public class Main {
 
   // Logger names date formatter
   static String logs_path = "logs/";
-  static SimpleFormatter formatter = new SimpleFormatter();
   static SimpleDateFormat simpleDateFormat =
     new SimpleDateFormat("YYYY-MM-dd__HH.mm.ss");
 
 
+  // TODOS:
+  // - Milliseconds in logs (System.setProperty("java.util.logging.SimpleFormatter.format", "%4$.1s %n"))
+  // - Fill empty methods of configurations
+  // - Find more data
+  // - Fix connection to server database
+  // - Answer to Anton's email
+
+
 	public static void main(String[] args) throws IOException {
+
     try {
 
       // Instantiate general logger
@@ -74,9 +82,13 @@ public class Main {
         e.printStackTrace();
       }
 
+      // Removing the table in case it was still there from previous tests
+      general_logger.info("Preparing database for tests");
+      preparingDatabase();
+
       // Marking start of tests
       general_logger.info("Executing tests from " +location_types[location_no-1]);
-      general_logger.info("---Start of Tests!---");
+      general_logger.info("---Start of all Tests!---");
 
       // Iterating through the tests to be done
       for (int insertion_no=0; insertion_no<3; insertion_no++) {
@@ -85,45 +97,49 @@ public class Main {
           // Printing out the test configuration and creating logger
           String test_configuration = ""+(location_no+1)+(insertion_no+1)+(index_no+1);
           Logger test_logger = instantiateLogger("test_" + test_configuration);
-          general_logger.info("-----New Test #"+test_configuration+"!-----");
-          test_logger.info(
-            "Test #" + test_configuration
+          test_logger.info("Test #" + test_configuration
             +" executing from the machine \"" +location_types[location_no]+ "\","
             +" having \"" +insertion_types[insertion_no]+ "\" insertion_nos at a time,"
             +" and \""+index_types[index_no]+"\" index_no set.");
 
           // Opening a connection to the postgreSQL database
           test_logger.info("Connecting to the PostgreSQL database...");
-          databaseConnect();
+          createDBConnection();
 
-          // TODO create table
+          // Creating the test table
+          boolean created_table = createTestTable();
+          if (created_table) {
+            test_logger.info("Created table \"Test_Table\"");
+          } else {
+            test_logger.severe("Table not created!");
+            return;
+          }
 
           // Applying the specified index
-          test_logger.info("Setting index...")
+          test_logger.info("Setting index...");
           Index index = new Index(pos_conn, pos_stmt, index_no);
           index.applyIndex();
 
+          // ==START OF TEST==
+          test_logger.info("--Start of test #"+test_configuration+"--");
+          general_logger.info("--Start of test #"+test_configuration+"--");
+
           // Inserting the tuples based on the specified methodology
-          test_logger.info("Inserting tuples...")
+          test_logger.info("Inserting tuples...");
           Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no);
           insertion.insertTuples();
 
-          // TODO: create methods to create the table in the DB
-          // TODO: create data folder with data inside
-              // TODO: check if data is enough
-          // TODO: create the methods to execute the first test
-          // TODO: keep going with all the other tests
+          // ==END OF TEST==
+          general_logger.info("--End of test #"+test_configuration+"--");
+          test_logger.info("--End of test #"+test_configuration+"--");
 
+          // Clean database and close connections
+          endOfTest();
         }
       }
 
-       // Printing the results
-       general_logger.info("--- DATA INGESTION SUM UP ---");
-       // TODO write sum up of data ingestion
-
-       // Closing the connection
-       pos_stmt.close();
-       pos_conn.close();
+       // Printing the end of the tests
+       general_logger.info("--- End of all Tests! ---");
 
     } catch(Exception e) {
        e.printStackTrace();
@@ -141,6 +157,7 @@ public class Main {
     }
   }
 
+  //-----------------------UTILITY----------------------------------------------
 
   // Instantiating the logger for the general information or errors
   public static Logger instantiateLogger (String file_name) throws IOException {
@@ -171,25 +188,6 @@ public class Main {
   }
 
 
-  // Connecting to the PostgreSQL database
-  public static void databaseConnect() throws SQLException {
-
-    // Creating the connection URL
-    String pos_complete_url;
-    if (useServerPostgresDB) {
-       pos_complete_url = DB_URL + DB_NAME +
-       "?user=" + DB_USER +"&password=" + DB_PASS;
-    } else {
-       pos_complete_url = local_DB_URL + local_DB_NAME +
-       "?user=" + local_DB_USER +"&password=" + local_DB_PASS;
-    }
-
-    // Connecting and creating a statement
-    pos_conn = DriverManager.getConnection(pos_complete_url);
-    pos_stmt = pos_conn.createStatement();
-  }
-
-
   // Returns the index_no of the specified string in the string array
   public static int returnStringIndex(String[] list, String keyword) {
     for (int i=0; i<list.length; i++) {
@@ -198,5 +196,92 @@ public class Main {
       }
     }
     return -1;
+  }
+
+
+  // Cleans the database and closes all the connections to it
+  public static void endOfTest() {
+    removeTestTable();
+    closeDBConnection();
+  }
+
+  //----------------------DATABASE----------------------------------------------
+
+  // Connecting to the PostgreSQL database
+  public static void createDBConnection() {
+    try {
+
+      // Creating the connection URL
+      String pos_complete_url;
+      if (useServerPostgresDB) {
+         pos_complete_url = DB_URL + DB_NAME +
+         "?user=" + DB_USER +"&password=" + DB_PASS;
+      } else {
+         pos_complete_url = local_DB_URL + local_DB_NAME +
+         "?user=" + local_DB_USER +"&password=" + local_DB_PASS;
+      }
+
+      // Connecting and creating a statement
+      pos_conn = DriverManager.getConnection(pos_complete_url);
+      pos_stmt = pos_conn.createStatement();
+    } catch (SQLException e) {
+      System.out.println("Problems with creating the database connection");
+      e.printStackTrace();
+    }
+  }
+
+
+  // Removing the table in case it was still there from previous tests
+  public static void preparingDatabase() {
+    createDBConnection();
+    removeTestTable();
+    closeDBConnection();
+  }
+
+
+  // Creating the table "test_table" in the database
+  public static boolean createTestTable () {
+    try {
+      String test_table_creation = "CREATE TABLE test_table (" +
+              "    time timestamp NOT NULL," +
+              "    value int NOT NULL" +
+              ")";
+      return (pos_stmt.executeUpdate(test_table_creation) == 0);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+
+    return false;
+  }
+
+
+  // Dropping the table "test_table" from the database
+  public static boolean removeTestTable() {
+    try {
+      String test_table_drop = "DROP TABLE IF EXISTS test_table;";
+      return (pos_stmt.executeUpdate(test_table_drop) == 0);
+    } catch (SQLException e) {
+      e.printStackTrace();
+    }
+    return false;
+  }
+
+
+  // Closing the connections to the database
+  public static void closeDBConnection() {
+    try{
+       if(pos_stmt!=null) pos_stmt.close();
+    } catch(SQLException se2) {
+        se2.printStackTrace();
+    }
+    try {
+       if(pos_conn!=null) pos_conn.close();
+    } catch(SQLException se){
+       se.printStackTrace();
+    }
+
+    // Nulling the database variables
+    pos_conn = null;
+    pos_stmt = null;
   }
 }
