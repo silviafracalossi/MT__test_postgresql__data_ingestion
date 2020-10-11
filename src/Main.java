@@ -34,16 +34,15 @@ public class Main {
   static String[] location_types = {"ironmaiden", "ironlady", "pc"};
   static String[] insertion_types = {"one", "multiple", "mixed"};
   static String[] index_types = {"no", "timestamp", "timestamp_and_value"};
-  static int location_no=0, insertion_no=0, index_no=0;
+  static int location_no=-1, insertion_no=-1, index_no=-1;
 
   // Logger names date formatter
   static String logs_path = "logs/";
-  static SimpleDateFormat simpleDateFormat =
-    new SimpleDateFormat("YYYY-MM-dd__HH.mm.ss");
+  static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
+    "YYYY-MM-dd__HH.mm.ss");
 
 
   // TODOS:
-  // - Fill empty methods of configurations
   // - Answer to Anton's email and also ask:
     // - Find more data
     // - Fix connection to server database
@@ -56,20 +55,18 @@ public class Main {
 
     try {
 
+      // Understanding where the script is executed
+      String response = "";
+      while (location_no == -1) {
+        System.out.println("From which machine are you executing this script?");
+        System.out.print("Type \"ironmaiden\", \"ironlady\" or \"pc\": ");
+        response = sc.nextLine();
+        location_no = returnStringIndex(location_types, response);
+      }
+      System.out.println("\""+location_types[location_no]+"\" selected. Thank you!");
+
       // Instantiate general logger
       Logger general_logger = instantiateLogger("general");
-
-      // Understanding where the script is executed
-      if (args.length == 1) {
-        location_no = returnStringIndex(location_types, args[0]);
-        if (location_no == 0) {
-          general_logger.severe("Unusual arg specified.");
-          return;
-        }
-      } else {
-        general_logger.severe("No args specified.");
-        return;
-      }
 
       // Loading the credentials to the new postgresql database
       general_logger.info("Reading credentials");
@@ -90,7 +87,7 @@ public class Main {
       preparingDatabase();
 
       // Marking start of tests
-      general_logger.info("Executing tests from " +location_types[location_no-1]);
+      general_logger.info("Executing tests from " +location_types[location_no]);
       general_logger.info("---Start of all Tests!---");
 
       // Iterating through the tests to be done
@@ -125,7 +122,7 @@ public class Main {
 
           // Checking whether concurrent queries are running
           if (insertion_no == 2) {
-            String response = "";
+            response = "";
             while (response.compareTo("y") != 0) {
               test_logger.info("Asking to start the concurrent queries");
               System.out.print("Did you START the concurrent queries? (y) ");
@@ -150,7 +147,7 @@ public class Main {
 
           // Checking whether concurrent queries are running
           if (insertion_no == 2) {
-            String response = "";
+            response = "";
             while (response.compareTo("y") != 0) {
               test_logger.info("Asking to stop the concurrent queries");
               System.out.print("Did you STOP the concurrent queries? (y) ");
@@ -195,7 +192,8 @@ public class Main {
 
     // Setting the name of the folder
     if (file_name.compareTo("general") == 0) {
-      logs_path += dateAsString+ "/";
+      file_name += (location_no+1);
+      logs_path += dateAsString+"__"+(location_no+1)+"/";
       File file = new File(logs_path);
       boolean bool = file.mkdirs();
     }
