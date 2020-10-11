@@ -1,12 +1,13 @@
 import java.io.*;
 import java.sql.*;
 import java.util.Scanner;
-import java.util.logging.FileHandler;
-import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.*;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+
+import java.util.*;
+import java.io.*;
 
 public class Main {
 
@@ -42,7 +43,6 @@ public class Main {
 
 
   // TODOS:
-  // - Milliseconds in logs (System.setProperty("java.util.logging.SimpleFormatter.format", "%4$.1s %n"))
   // - Fill empty methods of configurations
   // - Find more data
   // - Fix connection to server database
@@ -175,12 +175,23 @@ public class Main {
     }
 
     // Instantiating general logger
+    String log_complete_path = logs_path + dateAsString + "__" + file_name
+        + "__data_ingestion.xml";
     Logger logger = Logger.getLogger("DataIngestionGeneralLog_"+file_name);
-    SimpleFormatter formatter = new SimpleFormatter();
-    String log_path = logs_path + dateAsString + "__" + file_name
-        + "__data_ingestion.log";
-    FileHandler gl_fh = new FileHandler(log_path);
-    gl_fh.setFormatter(formatter);
+    logger.setLevel(Level.ALL);
+
+    // Loading properties of log file
+    Properties preferences = new Properties();
+    try {
+        FileInputStream configFile = new FileInputStream("resources/logging.properties");
+        preferences.load(configFile);
+        LogManager.getLogManager().readConfiguration(configFile);
+    } catch (IOException ex) {
+        System.out.println("[WARN] Could not load configuration file");
+    }
+
+    // Instantiating file handler
+    FileHandler gl_fh = new FileHandler(log_complete_path);
     logger.addHandler(gl_fh);
 
     // Returning the logger
