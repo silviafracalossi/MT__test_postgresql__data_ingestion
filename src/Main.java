@@ -58,8 +58,8 @@ public class Main {
       // Understanding where the script is executed
       String response = "";
       while (location_no == -1) {
-        System.out.println("From which machine are you executing this script?");
-        System.out.print("Type \"ironmaiden\", \"ironlady\" or \"pc\": ");
+        System.out.println("From which machine are you executing this script?"+
+            "(Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
         response = sc.nextLine();
         location_no = returnStringIndex(location_types, response);
       }
@@ -67,9 +67,10 @@ public class Main {
 
       // Instantiate general logger
       Logger general_logger = instantiateLogger("general");
+      general_logger.info("Location: " +location_types[location_no]);
 
       // Loading the credentials to the new postgresql database
-      general_logger.info("Reading credentials");
+      general_logger.info("Reading database credentials");
       try {
         File myObj = new File("resources/server_postgresql_credentials.txt");
         Scanner myReader = new Scanner(myObj);
@@ -77,7 +78,7 @@ public class Main {
         DB_PASS = myReader.nextLine();
         myReader.close();
       } catch (FileNotFoundException e) {
-        general_logger.severe("Please, remember to create the database"+
+        System.out.println("Please, remember to create the database"+
           "credentials file (see README)");
         e.printStackTrace();
       }
@@ -88,7 +89,7 @@ public class Main {
 
       // Marking start of tests
       general_logger.info("Executing tests from " +location_types[location_no]);
-      general_logger.info("---Start of all Tests!---");
+      general_logger.info("---Start of Tests!---");
 
       // Iterating through the tests to be done
       for (int insertion_no=0; insertion_no<3; insertion_no++) {
@@ -134,7 +135,6 @@ public class Main {
           // ==START OF TEST==
           System.out.println(test_configuration);
           test_logger.info("--Start of test #"+test_configuration+"--");
-          general_logger.info("--Start of test #"+test_configuration+"--");
 
           // Inserting the tuples based on the specified methodology
           test_logger.info("Inserting tuples...");
@@ -142,7 +142,6 @@ public class Main {
           insertion.insertTuples();
 
           // ==END OF TEST==
-          general_logger.info("--End of test #"+test_configuration+"--");
           test_logger.info("--End of test #"+test_configuration+"--");
 
           // Checking whether concurrent queries are running
@@ -160,10 +159,6 @@ public class Main {
           endOfTest();
         }
       }
-
-       // Printing the end of the tests
-       general_logger.info("--- End of all Tests! ---");
-
     } catch(Exception e) {
        e.printStackTrace();
     } finally {
