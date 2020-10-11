@@ -141,8 +141,8 @@ public class Main {
 
           // Inserting the tuples based on the specified methodology
           test_logger.info("Inserting tuples...");
-          Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no);
-          test_logger.info(insertion.insertTuples());
+          Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no, test_logger);
+          insertion.insertTuples();
 
           // ==END OF TEST==
           general_logger.info("--End of test #"+test_configuration+"--");
