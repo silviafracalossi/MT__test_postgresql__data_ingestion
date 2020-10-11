@@ -51,6 +51,9 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 
+    // Instantiating the input scanner
+    Scanner sc = new Scanner(System.in);
+
     try {
 
       // Instantiate general logger
@@ -120,18 +123,41 @@ public class Main {
           Index index = new Index(pos_conn, pos_stmt, index_no);
           test_logger.info(index.applyIndex());
 
+          // Checking whether concurrent queries are running
+          if (insertion_no == 2) {
+            String response = "";
+            while (response.compareTo("y") != 0) {
+              test_logger.info("Asking to start the concurrent queries");
+              System.out.print("Did you START the concurrent queries? (y) ");
+              response = sc.nextLine();
+            }
+            test_logger.info("Concurrent queries started");
+          }
+
           // ==START OF TEST==
+          System.out.println(test_configuration);
           test_logger.info("--Start of test #"+test_configuration+"--");
           general_logger.info("--Start of test #"+test_configuration+"--");
 
           // Inserting the tuples based on the specified methodology
           test_logger.info("Inserting tuples...");
           Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no);
-          insertion.insertTuples();
+          test_logger.info(insertion.insertTuples());
 
           // ==END OF TEST==
           general_logger.info("--End of test #"+test_configuration+"--");
           test_logger.info("--End of test #"+test_configuration+"--");
+
+          // Checking whether concurrent queries are running
+          if (insertion_no == 2) {
+            String response = "";
+            while (response.compareTo("y") != 0) {
+              test_logger.info("Asking to stop the concurrent queries");
+              System.out.print("Did you STOP the concurrent queries? (y) ");
+              response = sc.nextLine();
+            }
+            test_logger.info("Concurrent queries stopped");
+          }
 
           // Clean database and close connections
           endOfTest();
