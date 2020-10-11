@@ -44,9 +44,9 @@ public class Main {
 
   // TODOS:
   // - Fill empty methods of configurations
-  // - Find more data
-  // - Fix connection to server database
-  // - Answer to Anton's email
+  // - Answer to Anton's email and also ask:
+    // - Find more data
+    // - Fix connection to server database
 
 
 	public static void main(String[] args) throws IOException {
@@ -118,7 +118,7 @@ public class Main {
           // Applying the specified index
           test_logger.info("Setting index...");
           Index index = new Index(pos_conn, pos_stmt, index_no);
-          index.applyIndex();
+          test_logger.info(index.applyIndex());
 
           // ==START OF TEST==
           test_logger.info("--Start of test #"+test_configuration+"--");
