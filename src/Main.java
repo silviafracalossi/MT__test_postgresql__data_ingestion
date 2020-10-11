@@ -58,8 +58,8 @@ public class Main {
       // Understanding where the script is executed
       String response = "";
       while (location_no == -1) {
-        System.out.println("From which machine are you executing this script?"+
-            "(Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
+        System.out.print("From which machine are you executing this script?"+
+            " (Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
         response = sc.nextLine();
         location_no = returnStringIndex(location_types, response);
       }
@@ -99,9 +99,9 @@ public class Main {
           String test_configuration = ""+(location_no+1)+(insertion_no+1)+(index_no+1);
           Logger test_logger = instantiateLogger("test_" + test_configuration);
           test_logger.info("Test #" + test_configuration
-            +" executing from the machine \"" +location_types[location_no]+ "\","
-            +" having \"" +insertion_types[insertion_no]+ "\" insertion_nos at a time,"
-            +" and \""+index_types[index_no]+"\" index_no set.");
+            +": from machine \"" +location_types[location_no]+ "\","
+            +" having \"" +insertion_types[insertion_no]+ "\" insertions at a time"
+            +" and \""+index_types[index_no]+"\" index set.");
 
           // Opening a connection to the postgreSQL database
           test_logger.info("Connecting to the PostgreSQL database...");
@@ -132,13 +132,11 @@ public class Main {
             test_logger.info("Concurrent queries started");
           }
 
+          // Creating the object to insert the tuples
+          Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no, test_logger);
+
           // ==START OF TEST==
           System.out.println(test_configuration);
-          test_logger.info("--Start of test #"+test_configuration+"--");
-
-          // Inserting the tuples based on the specified methodology
-          test_logger.info("Inserting tuples...");
-          Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no, test_logger);
           insertion.insertTuples();
 
           // ==END OF TEST==

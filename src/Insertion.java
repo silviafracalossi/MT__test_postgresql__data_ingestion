@@ -55,6 +55,9 @@ public class Insertion {
 
     try {
       Scanner reader = new Scanner(new File(data_file_path));
+
+      // Signaling start of test
+      test_logger.info("--Start of test--");
       while (reader.hasNextLine()) {
 
         // Retrieving the data and preparing insertion script
@@ -85,7 +88,7 @@ public class Insertion {
       test_logger.severe("Insertion: \""+configuration+"\" - problems with the execution");
     }
 
-    test_logger.info(rows_inserted+" total rows inserted with \""+configuration+"\" configuration");
+    test_logger.info("Total rows inserted: "+rows_inserted);
   }
 
 
@@ -103,6 +106,9 @@ public class Insertion {
 
     try {
       Scanner reader = new Scanner(new File(data_file_path));
+
+      // Signaling start of test
+      test_logger.info("--Start of test--");
       while (reader.hasNextLine()) {
 
         // Retrieving the data and preparing insertion script
@@ -161,6 +167,6 @@ public class Insertion {
       test_logger.severe("Insertion: \"Multiple tuples at a time\" - problems with the execution");
     }
 
-    test_logger.info(rows_inserted+" total rows inserted with \"Multiple tuples at a time\" configuration");
+    test_logger.info("Total rows inserted: "+rows_inserted);
   }
 }
