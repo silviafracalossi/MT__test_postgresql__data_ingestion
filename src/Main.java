@@ -154,7 +154,7 @@ public class Main {
               response = "";
               while (response.compareTo("y") != 0) {
                 test_logger.info("Asking to start the concurrent queries");
-                System.out.print("Did you START the concurrent queries? (y) ");
+                System.out.print("Are you at the \"Ready Statement\" on the other script? (y) ");
                 response = sc.nextLine();
               }
               test_logger.info("Concurrent queries started");
