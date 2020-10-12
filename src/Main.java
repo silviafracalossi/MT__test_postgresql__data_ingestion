@@ -13,15 +13,18 @@ public class Main {
 
   // Defining which database to connect to
   static final boolean useServerPostgresDB = false;
+  static final String data_file_path = "data/TEMPERATURE_DATA.csv";
+  static final String DB_PREFIX = "jdbc:postgresql://";
 
   // LOCAL Configurations
-  static final String local_DB_URL = "jdbc:postgresql://localhost/";
+  static final String local_DB_HOST = "localhost";
   static final String local_DB_NAME = "thesis_data_ingestion";
   static final String local_DB_USER = "postgres";
   static final String local_DB_PASS = "silvia";
 
   // Configurations to server PostgreSQL database
-  static final String DB_URL = "jdbc:postgresql://ironmaiden.inf.unibz.it/";
+  static final String DB_HOST = "ironmaiden.inf.unibz.it";
+  static final int DB_PORT = 5433;
   static final String DB_NAME = "sfracalossi";
   static String DB_USER;
   static String DB_PASS;
@@ -34,18 +37,15 @@ public class Main {
   static String[] location_types = {"ironmaiden", "ironlady", "pc"};
   static String[] insertion_types = {"one", "multiple", "mixed"};
   static String[] index_types = {"no", "timestamp", "timestamp_and_value"};
+
+  // Store users' configurations
   static int location_no=-1, insertion_no=-1, index_no=-1;
+  static boolean exec_om=false, exec_mixed=false;
 
   // Logger names date formatter
   static String logs_path = "logs/";
   static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
     "YYYY-MM-dd__HH.mm.ss");
-
-
-  // TODOS:
-  // - Answer to Anton's email and also ask:
-    // - Find more data
-    // - Fix connection to server database
 
 
 	public static void main(String[] args) throws IOException {
@@ -63,7 +63,32 @@ public class Main {
         response = sc.nextLine();
         location_no = returnStringIndex(location_types, response);
       }
-      System.out.println("\""+location_types[location_no]+"\" selected. Thank you!");
+
+      // Understanding what the user wants to be executed
+      response = "";
+      boolean correct_answer = false;
+      while (!correct_answer) {
+        System.out.print("What do you want to execute?"
+        +" (Type \"1\" for all 9 tests,"
+        +" type \"2\" for One and Multiple tuples only,"
+        +" type \"3\" for Mixed Workload only): ");
+        response = sc.nextLine().replace(" ", "");
+
+        // Understanding what the user wants
+        if (response.compareTo("1") == 0) {
+          exec_om=true;
+          exec_mixed=true;
+          correct_answer=true;
+        }
+        if (response.compareTo("2") == 0) {
+          exec_om=true;
+          correct_answer=true;
+        }
+        if (response.compareTo("3") == 0) {
+          exec_mixed=true;
+          correct_answer=true;
+        }
+      }
 
       // Instantiate general logger
       Logger general_logger = instantiateLogger("general");
@@ -95,66 +120,70 @@ public class Main {
       for (int insertion_no=0; insertion_no<3; insertion_no++) {
         for (int index_no=0; index_no<3; index_no++) {
 
-          // Printing out the test configuration and creating logger
-          String test_configuration = ""+(location_no+1)+(insertion_no+1)+(index_no+1);
-          Logger test_logger = instantiateLogger("test_" + test_configuration);
-          test_logger.info("Test #" + test_configuration
-            +": from machine \"" +location_types[location_no]+ "\","
-            +" having \"" +insertion_types[insertion_no]+ "\" insertions at a time"
-            +" and \""+index_types[index_no]+"\" index set.");
+          // Checking if this test is required by the user at the beginning
+          if ((insertion_no!=2 && exec_om) || (insertion_no==2 && exec_mixed)) {
 
-          // Opening a connection to the postgreSQL database
-          test_logger.info("Connecting to the PostgreSQL database...");
-          createDBConnection();
+            // Printing out the test configuration and creating logger
+            String test_configuration = ""+(location_no+1)+(insertion_no+1)+(index_no+1);
+            Logger test_logger = instantiateLogger("test_" + test_configuration);
+            test_logger.info("Test #" + test_configuration
+              +": from machine \"" +location_types[location_no]+ "\","
+              +" having \"" +insertion_types[insertion_no]+ "\" insertions at a time"
+              +" and \""+index_types[index_no]+"\" index set.");
 
-          // Creating the test table
-          boolean created_table = createTestTable();
-          if (created_table) {
-            test_logger.info("Created table \"Test_Table\"");
-          } else {
-            test_logger.severe("Table not created!");
-            return;
-          }
+            // Opening a connection to the postgreSQL database
+            test_logger.info("Connecting to the PostgreSQL database...");
+            createDBConnection();
 
-          // Applying the specified index
-          test_logger.info("Setting index...");
-          Index index = new Index(pos_conn, pos_stmt, index_no);
-          test_logger.info(index.applyIndex());
-
-          // Checking whether concurrent queries are running
-          if (insertion_no == 2) {
-            response = "";
-            while (response.compareTo("y") != 0) {
-              test_logger.info("Asking to start the concurrent queries");
-              System.out.print("Did you START the concurrent queries? (y) ");
-              response = sc.nextLine();
+            // Creating the test table
+            boolean created_table = createTestTable();
+            if (created_table) {
+              test_logger.info("Created table \"Test_Table\"");
+            } else {
+              test_logger.severe("Table not created!");
+              return;
             }
-            test_logger.info("Concurrent queries started");
-          }
 
-          // Creating the object to insert the tuples
-          Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no, test_logger);
+            // Applying the specified index
+            test_logger.info("Setting index...");
+            Index index = new Index(pos_conn, pos_stmt, index_no);
+            test_logger.info(index.applyIndex());
 
-          // ==START OF TEST==
-          System.out.println(test_configuration);
-          insertion.insertTuples();
-
-          // ==END OF TEST==
-          test_logger.info("--End of test #"+test_configuration+"--");
-
-          // Checking whether concurrent queries are running
-          if (insertion_no == 2) {
-            response = "";
-            while (response.compareTo("y") != 0) {
-              test_logger.info("Asking to stop the concurrent queries");
-              System.out.print("Did you STOP the concurrent queries? (y) ");
-              response = sc.nextLine();
+            // Checking whether concurrent queries are running
+            if (insertion_no == 2) {
+              response = "";
+              while (response.compareTo("y") != 0) {
+                test_logger.info("Asking to start the concurrent queries");
+                System.out.print("Did you START the concurrent queries? (y) ");
+                response = sc.nextLine();
+              }
+              test_logger.info("Concurrent queries started");
             }
-            test_logger.info("Concurrent queries stopped");
-          }
 
-          // Clean database and close connections
-          endOfTest();
+            // Creating the object to insert the tuples
+            Insertion insertion = new Insertion(pos_conn, pos_stmt, insertion_no, test_logger, data_file_path);
+
+            // ==START OF TEST==
+            System.out.println(test_configuration);
+            insertion.insertTuples();
+
+            // ==END OF TEST==
+            test_logger.info("--End of test #"+test_configuration+"--");
+
+            // Checking whether concurrent queries are running
+            if (insertion_no == 2) {
+              response = "";
+              while (response.compareTo("y") != 0) {
+                test_logger.info("Asking to stop the concurrent queries");
+                System.out.print("Did you STOP the concurrent queries? (y) ");
+                response = sc.nextLine();
+              }
+              test_logger.info("Concurrent queries stopped");
+            }
+
+            // Clean database and close connections
+            endOfTest();
+          }
         }
       }
     } catch(Exception e) {
@@ -242,11 +271,11 @@ public class Main {
       // Creating the connection URL
       String pos_complete_url;
       if (useServerPostgresDB) {
-         pos_complete_url = DB_URL + DB_NAME +
-         "?user=" + DB_USER +"&password=" + DB_PASS;
+         pos_complete_url = DB_PREFIX + DB_HOST + ":" + DB_PORT + "/" + DB_NAME
+         + "?user=" + DB_USER + "&password=" + DB_PASS;
       } else {
-         pos_complete_url = local_DB_URL + local_DB_NAME +
-         "?user=" + local_DB_USER +"&password=" + local_DB_PASS;
+         pos_complete_url = DB_PREFIX + local_DB_HOST + "/" + local_DB_NAME
+         + "?user=" + local_DB_USER +"&password=" + local_DB_PASS;
       }
 
       // Connecting and creating a statement

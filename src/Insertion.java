@@ -5,29 +5,30 @@ import java.util.logging.*;
 
 public class Insertion {
 
-    Connection pos_conn;
-    Statement pos_stmt;
-    int test_no;
+  Connection pos_conn;
+  Statement pos_stmt;
+  int test_no;
 
-    Logger test_logger;
+  Logger test_logger;
 
-    // Defines how many tuples are inserted when using "multiple tuples" configuration
-    int no_multiple_tuples = 5;
+  // Defines how many tuples are inserted when using "multiple tuples" configuration
+  int no_multiple_tuples = 5;
 
-    // Data structure: timestamp, printer ID, temperature
-    String data_file_path = "data/ISPPE_FPGA_TEMPERATURE.csv";
+  // Data structure: timestamp and temperature
+  String data_file_path;
 
-    // Class that handles the insertion configurations
-    public Insertion (Connection pos_conn, Statement pos_stmt, int test_no, Logger test_logger) {
-      if (test_no < 0 || test_no > 2) {
-        System.out.println("Wrong test number passed - no insertion made");
-      } else {
-        this.pos_conn = pos_conn;
-        this.pos_stmt = pos_stmt;
-        this.test_no = test_no;
-        this.test_logger = test_logger;
-      }
+  // Class that handles the insertion configurations
+  public Insertion (Connection pos_conn, Statement pos_stmt, int test_no, Logger test_logger, String data_file_path) {
+    if (test_no < 0 || test_no > 2) {
+      System.out.println("Wrong test number passed - no insertion made");
+    } else {
+      this.pos_conn = pos_conn;
+      this.pos_stmt = pos_stmt;
+      this.test_no = test_no;
+      this.test_logger = test_logger;
+      this.data_file_path = data_file_path;
     }
+  }
 
 
   // Redirects to the correct configuration based on the test running
@@ -63,7 +64,7 @@ public class Insertion {
         // Retrieving the data and preparing insertion script
         row = reader.nextLine();
         fields = row.split(",");
-        query = insertion_sql + fields[0] + "', " + fields[2] + ");";
+        query = insertion_sql + fields[0] + "', " + fields[1] + ");";
 
         // Executing the query and checking the result
         try {
@@ -114,7 +115,7 @@ public class Insertion {
         // Retrieving the data and preparing insertion script
         row = reader.nextLine();
         fields = row.split(",");
-        tuple = "('" + fields[0] + "', " + fields[2] + ")";
+        tuple = "('" + fields[0] + "', " + fields[1] + ")";
 
         // Inserting the tuple in the final query
         query = (no_rows_waiting == 0) ? (insertion_sql+tuple) : (query+", "+tuple);
