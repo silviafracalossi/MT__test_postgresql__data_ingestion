@@ -211,7 +211,7 @@ public class Main {
     response = "";
     correct_answer = false;
     while (!correct_answer) {
-      System.out.print("3. Where you want it to be executed?"
+      System.out.print("3. Where do you want it to be executed?"
       +" (Type \"s\" for server database,"
       +" type \"l\" for local database)"
       +" (usually, \"l\" is for script test purposes only): ");
