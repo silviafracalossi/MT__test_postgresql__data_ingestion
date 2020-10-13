@@ -3,7 +3,6 @@
 Tester of the Postgresql ability of ingesting time series data
 
 ## Repository Structure
-
 -   `build/`, containing the generated .class files after compiling the java code;
 -   `data/`, containing the printers parsed logs files in the format of CSV files;
 -   `logs/`, containing the log information of all the tests done;
@@ -11,15 +10,12 @@ Tester of the Postgresql ability of ingesting time series data
 -   `src/`, containing the java source files.
 
 In the main directory, there is:
-
 -   `compile_and_run.bash`, a bash file containing the commands for compiling the java code and running it.
 
 ## Requirements
-
 -   PostgreSQL JDBC Driver (42.2.14)
 
 ## Installation and running the project
-
 -   Create the folder `build`;
 -   Create the folder `data`;
     -   Inside the folder, copy-paste the printers parsed log files;
@@ -28,10 +24,8 @@ In the main directory, there is:
     -   Copy-paste the indicated PostgreSQL driver (called `postgresql-42.2.14.jar`);
 -   `bash compile_and_run.bash`
 
-## Preparing a standalone version
-
+## Preparing an executable jar file
 Since I couldn't manage to find a way with the command line, I used Eclipse:
-
 -   Create the folder `standalone`;
 -   Open the project in Eclipse;
 -   Set Java 8 as the default JRE:
@@ -52,7 +46,18 @@ Since I couldn't manage to find a way with the command line, I used Eclipse:
     -   If you have this repository available:
         -   From the main directory, execute `java -jar standalone/DataIngestionTest.jar`.
     -   If you need a proper standalone version:
-        -   Copy-paste the JAR file in an empty folder;
-        -   In the folder, create the folder `resources` and copy-paste the `resources/logging.properties` and the `resources/server_postgresql_credentials.txt` files;
-        -   Create the folder `data` and copy-paste the printers parsed log files;
-        -   Execute `java -jar DataIngestionTest.jar`.
+        -   Check the next paragraph.
+
+## Preparing the standalone version on the server
+-   Connect to the unibz VPN through Cisco AnyConnect;
+-   Prepare the folders on the server:
+    -   Through SSH, access the server;
+    -   Execute `mkdir standalone_ingestion`;
+    -   Execute `mkdir standalone_ingestion/resources`;
+-   Send the JAR and the help files from another terminal (not connected through SSH):
+    -   Execute `scp standalone/DataIngestionTest.jar sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion`;
+    -   Execute `scp resources/server_postgresql_credentials.txt sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
+    -   Execute `scp resources/logging.properties sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
+-   Execute the JAR file (use the terminal connected through SSH):
+    -   Execute `cd standalone_ingestion`;
+    -   Execute `java -jar DataIngestionTest.jar`.
