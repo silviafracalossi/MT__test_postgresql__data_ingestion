@@ -5,18 +5,19 @@ import java.util.logging.*;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.text.SimpleDateFormat;
-
 import java.util.*;
-import java.io.*;
 
 public class Main {
 
-  // Defining which database to connect to
-  static final boolean useServerPostgresDB = false;
-  static final String data_file_path = "data/TEMPERATURE_DATA.csv";
-  static final String DB_PREFIX = "jdbc:postgresql://";
+  // Store users' configurations - default settings written here
+  static Scanner sc = new Scanner(System.in);
+  static int location_no=-1, insertion_no=-1, index_no=-1;
+  static boolean exec_om=false, exec_mixed=false;
+  static boolean useServerPostgresDB = true;
+  static String data_file_path = "data/TEMPERATURE_DATA.csv";
 
   // LOCAL Configurations
+  static final String DB_PREFIX = "jdbc:postgresql://";
   static final String local_DB_HOST = "localhost";
   static final String local_DB_NAME = "thesis_data_ingestion";
   static final String local_DB_USER = "postgres";
@@ -38,10 +39,6 @@ public class Main {
   static String[] insertion_types = {"one", "multiple", "mixed"};
   static String[] index_types = {"no", "timestamp", "timestamp_and_value"};
 
-  // Store users' configurations
-  static int location_no=-1, insertion_no=-1, index_no=-1;
-  static boolean exec_om=false, exec_mixed=false;
-
   // Logger names date formatter
   static String logs_path = "logs/";
   static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(
@@ -50,45 +47,9 @@ public class Main {
 
 	public static void main(String[] args) throws IOException {
 
-    // Instantiating the input scanner
-    Scanner sc = new Scanner(System.in);
-
     try {
 
-      // Understanding where the script is executed
-      String response = "";
-      while (location_no == -1) {
-        System.out.print("From which machine are you executing this script?"+
-            " (Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
-        response = sc.nextLine();
-        location_no = returnStringIndex(location_types, response);
-      }
-
-      // Understanding what the user wants to be executed
-      response = "";
-      boolean correct_answer = false;
-      while (!correct_answer) {
-        System.out.print("What do you want to execute?"
-        +" (Type \"1\" for all 9 tests,"
-        +" type \"2\" for One and Multiple tuples only,"
-        +" type \"3\" for Mixed Workload only): ");
-        response = sc.nextLine().replace(" ", "");
-
-        // Understanding what the user wants
-        if (response.compareTo("1") == 0) {
-          exec_om=true;
-          exec_mixed=true;
-          correct_answer=true;
-        }
-        if (response.compareTo("2") == 0) {
-          exec_om=true;
-          correct_answer=true;
-        }
-        if (response.compareTo("3") == 0) {
-          exec_mixed=true;
-          correct_answer=true;
-        }
-      }
+      talkToUser();
 
       // Instantiate general logger
       Logger general_logger = instantiateLogger("general");
@@ -150,8 +111,8 @@ public class Main {
             test_logger.info(index.applyIndex());
 
             // Checking whether concurrent queries are running
+            String response = "";
             if (insertion_no == 2) {
-              response = "";
               while (response.compareTo("y") != 0) {
                 test_logger.info("Asking to start the concurrent queries");
                 System.out.print("Are you at the \"Ready Statement\" on the other script? (y) ");
@@ -203,6 +164,86 @@ public class Main {
   }
 
   //-----------------------UTILITY----------------------------------------------
+
+  // Interactions with the user to understand his/her preferences
+  public static void talkToUser () throws Exception {
+
+    System.out.println("4 questions for you!");
+    String response = "";
+    boolean correct_answer = false;
+
+    // Understanding where the script is executed
+    response = "";
+    while (location_no == -1) {
+      System.out.print("1. From which machine are you executing this script?"+
+          " (Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
+      response = sc.nextLine();
+      location_no = returnStringIndex(location_types, response);
+    }
+
+    // Understanding what the user wants to be executed
+    response = "";
+    correct_answer = false;
+    while (!correct_answer) {
+      System.out.print("2. What do you want to execute?"
+      +" (Type \"1\" for all 9 tests,"
+      +" type \"2\" for One and Multiple tuples only,"
+      +" type \"3\" for Mixed Workload only): ");
+      response = sc.nextLine().replace(" ", "");
+
+      // Understanding what the user wants
+      if (response.compareTo("1") == 0) {
+        exec_om=true;
+        exec_mixed=true;
+        correct_answer=true;
+      }
+      if (response.compareTo("2") == 0) {
+        exec_om=true;
+        correct_answer=true;
+      }
+      if (response.compareTo("3") == 0) {
+        exec_mixed=true;
+        correct_answer=true;
+      }
+    }
+
+    // Understanding whether the user wants the sever db or the local db
+    response = "";
+    correct_answer = false;
+    while (!correct_answer) {
+      System.out.print("3. Where you want it to be executed?"
+      +" (Type \"s\" for server database,"
+      +" type \"l\" for local database)"
+      +" (usually, \"l\" is for script test purposes only): ");
+      response = sc.nextLine().replace(" ", "");
+
+      // Understanding what the user wants
+      if (response.compareTo("l") == 0 || response.compareTo("s") == 0) {
+        correct_answer=true;
+        if (response.compareTo("l") == 0) {
+          useServerPostgresDB = false;
+        }
+      }
+    }
+
+    // Understanding which file to run
+    response = "";
+    correct_answer = false;
+    while (!correct_answer) {
+      System.out.print("4. Finally, inside the data folder, what is the name" +
+      " of the file containing the data to be inserted? ");
+      response = sc.nextLine().replace(" ", "");
+
+      // Checking if it is a file
+      File f = new File("data/"+response);
+      if(f.exists() && !f.isDirectory()) {
+        data_file_path = "data/"+response;
+        correct_answer = true;
+      }
+    }
+
+    System.out.println("We are ready to start, thank you!");
+  }
 
   // Instantiating the logger for the general information or errors
   public static Logger instantiateLogger (String file_name) throws IOException {
