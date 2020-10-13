@@ -16,5 +16,5 @@ mkdir logs/from_${server}/${folder_name}
 for i in "${file_names[@]}"
 do
 	echo $i
-  pscp sfracalossi@${server}.inf.unibz.it:/data/sfracalossi/standalone_ingestion/logs/${folder_name}/${i} logs/from_${server}/${folder_name}/${i}.xml
+  pscp sfracalossi@${server}.inf.unibz.it:/data/sfracalossi/standalone_ingestion/logs/${folder_name}/${i} logs/from_${server}/${folder_name}/${i}
 done
