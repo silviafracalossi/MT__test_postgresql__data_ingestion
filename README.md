@@ -50,14 +50,23 @@ Since I couldn't manage to find a way with the command line, I used Eclipse:
 
 ## Preparing the standalone version on the server
 -   Connect to the unibz VPN through Cisco AnyConnect;
--   Prepare the folders on the server:
-    -   Through SSH, access the server;
+-   Connect to the server through SSH and then:
     -   Execute `mkdir standalone_ingestion`;
     -   Execute `mkdir standalone_ingestion/resources`;
+    -   Execute `mkdir standalone_ingestion/data`;
 -   Send the JAR and the help files from another terminal (not connected through SSH):
     -   Execute `scp standalone/DataIngestionTest.jar sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion`;
     -   Execute `scp resources/server_postgresql_credentials.txt sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
     -   Execute `scp resources/logging.properties sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
+-   Send the data file:
+    -   Execute `scp data/TEMPERATURE.csv sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/data`;
 -   Execute the JAR file (use the terminal connected through SSH):
     -   Execute `cd standalone_ingestion`;
     -   Execute `java -jar DataIngestionTest.jar`.
+
+## To retrieve the logs from the server
+-   Open the file `retrieve_data.sh`;
+    -   Define the variable `server` with the name of the server;
+    -   Define the variable `folder_name` with the name of the folder containing the log files;
+    -   Define the variable `file_names` with the names of the server files;
+-   Execute `bash exec_retrieval.sh`.
