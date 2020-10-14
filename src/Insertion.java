@@ -144,7 +144,6 @@ public class Insertion {
         }
         insertion_query+="(?, ?)";
       }
-      System.out.println(insertion_query);
 
       PreparedStatement pst = pos_conn.prepareStatement(insertion_query);
 
@@ -188,8 +187,6 @@ public class Insertion {
       // Last insertion, if no_multiple_tuples was not reached
       if (no_rows_waiting != 0) {
         original_insert_query+= " "+insertions.replace(") (", "),(");
-        System.out.println(original_insert_query);
-
         if (pos_stmt.executeUpdate(original_insert_query) == no_rows_waiting) {
           rows_inserted+=no_rows_waiting;
           test_logger.info("Query successfully executed: \n"+insertions);
