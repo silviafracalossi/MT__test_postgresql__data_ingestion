@@ -342,7 +342,7 @@ public class Main {
     try {
       String test_table_creation = "CREATE TABLE test_table (" +
               "    time timestamp NOT NULL," +
-              "    value int NOT NULL" +
+              "    value smallint NOT NULL" +
               ")";
       return (pos_stmt.executeUpdate(test_table_creation) == 0);
     } catch (SQLException e) {
