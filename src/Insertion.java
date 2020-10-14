@@ -53,7 +53,7 @@ public class Insertion {
 
     // Defining variables useful for method
     String[] fields;
-    String row, query = "";
+    String row;
     int rows_inserted = 0;
 
     // Timestamp variables
@@ -71,7 +71,6 @@ public class Insertion {
 
       // Signaling start of test
       test_logger.info("--Start of test--");
-
       while (reader.hasNextLine()) {
 
         // Retrieving the data and preparing insertion script
@@ -120,15 +119,34 @@ public class Insertion {
 
     // Defining variables useful for method
     String[] fields;
-    String row, query = "", tuple;
-    String insertion_sql = "INSERT INTO test_table (time, value) VALUES ";
+    String row;
     int rows_inserted = 0;
+
+    // Defining variables for the insertion
+    String original_insert_query = "INSERT INTO test_table (time, value) VALUES ";
+    String insertion_query = original_insert_query;
+    String insertions="";
 
     // Number of tuples inserted in the script but not yet executed
     int no_rows_waiting = 0;
 
+    // Timestamp variables
+    java.util.Date parsedDate;
+    Timestamp timestamp;
+
     try {
       Scanner reader = new Scanner(new File(data_file_path));
+
+      // Preparing the insertion query
+      for (int i=0; i<no_multiple_tuples; i++) {
+        if (i!=0) {
+          insertion_query+=", ";
+        }
+        insertion_query+="(?, ?)";
+      }
+      System.out.println(insertion_query);
+
+      PreparedStatement pst = pos_conn.prepareStatement(insertion_query);
 
       // Signaling start of test
       test_logger.info("--Start of test--");
@@ -137,47 +155,46 @@ public class Insertion {
         // Retrieving the data and preparing insertion script
         row = reader.nextLine();
         fields = row.split(",");
-        tuple = "('" + fields[0] + "', " + fields[1] + ")";
+        insertions += "('" + fields[0] + "'," + fields[1] + ") ";
 
-        // Inserting the tuple in the final query
-        query = (no_rows_waiting == 0) ? (insertion_sql+tuple) : (query+", "+tuple);
+        // Casting timestamp
+        parsedDate = dateFormat.parse((String)fields[0]);
+        timestamp = new Timestamp(parsedDate.getTime());
+
+        // Inserting the variables in the prepared statement
+        int first_column = (no_rows_waiting*2)+1;
+        int second_column = (no_rows_waiting+1)*2;
+        pst.setTimestamp(first_column, timestamp);
+        pst.setInt(second_column, Integer.parseInt(fields[1]));
         no_rows_waiting++;
 
         // Executing the query and checking the result, if number of rows is enough
         if (no_rows_waiting == no_multiple_tuples) {
-
-          try {
-            query += ';';
-            if (pos_stmt.executeUpdate(query) != no_rows_waiting) {
-                test_logger.severe("Problem executing the following script: \n"+query);
-            } else {
-                rows_inserted+=no_rows_waiting;
-                test_logger.info("Query successfully executed: \n"+query);
-            }
-          } catch (SQLException e) {
-            test_logger.severe("Problem executing the following script: \n"+query);
-            e.printStackTrace();
+          if (pst.executeUpdate() == 5) {
+            rows_inserted+=no_rows_waiting;
+            test_logger.info("Query successfully executed: \n"+insertions);
+            insertions = "";
+          } else {
+            no_rows_waiting = 0;
+            test_logger.severe("Problem executing the following insertion"+insertions+"\n");
+            insertions = "";
           }
 
           // Reset variables for successive tuples
           no_rows_waiting = 0;
-          query = "";
         }
       }
 
       // Last insertion, if no_multiple_tuples was not reached
       if (no_rows_waiting != 0) {
-        try {
-          query += ';';
-          if (pos_stmt.executeUpdate(query) != no_rows_waiting) {
-              test_logger.severe("Problem executing the following script: \n"+query);
-          } else {
-              rows_inserted+=no_rows_waiting;
-              test_logger.info("Query successfully executed: \n"+query);
-          }
-        } catch (SQLException e) {
-          test_logger.severe("Problem executing the following script: \n"+query);
-          e.printStackTrace();
+        original_insert_query+= " "+insertions.replace(") (", "),(");
+        System.out.println(original_insert_query);
+
+        if (pos_stmt.executeUpdate(original_insert_query) == no_rows_waiting) {
+          rows_inserted+=no_rows_waiting;
+          test_logger.info("Query successfully executed: \n"+insertions);
+        } else {
+          test_logger.severe("Problem executing the following insertion"+insertions+"\n");
         }
       }
 
@@ -188,6 +205,12 @@ public class Insertion {
       System.out.println("An error occurred.");
       e.printStackTrace();
       test_logger.severe("Insertion: \"Multiple tuples at a time\" - problems with the execution");
+    } catch (SQLException e) {
+      test_logger.severe("Problem executing the following script\n");
+      e.printStackTrace();
+    } catch (ParseException e) {
+      test_logger.severe("Problem with parsing a timestamp\n");
+      e.printStackTrace();
     }
 
     test_logger.info("Total rows inserted: "+rows_inserted);
