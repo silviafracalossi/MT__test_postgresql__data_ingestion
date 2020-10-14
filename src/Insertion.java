@@ -2,6 +2,7 @@ import java.io.*;
 import java.sql.*;
 import java.util.Scanner;
 import java.util.logging.*;
+import java.text.*;
 
 public class Insertion {
 
@@ -10,6 +11,8 @@ public class Insertion {
   int test_no;
 
   Logger test_logger;
+
+  static SimpleDateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
   // Defines how many tuples are inserted when using "multiple tuples" configuration
   int no_multiple_tuples = 5;
@@ -51,32 +54,44 @@ public class Insertion {
     // Defining variables useful for method
     String[] fields;
     String row, query = "";
-    String insertion_sql = "INSERT INTO test_table (time, value) VALUES ('";
     int rows_inserted = 0;
 
+    // Timestamp variables
+    java.util.Date parsedDate;
+    Timestamp timestamp;
+
     try {
+
+      // Preparing file scanner
       Scanner reader = new Scanner(new File(data_file_path));
+
+      // Defining variables for the insertion
+      String insertion_query = "INSERT INTO test_table (time, value) VALUES (?, ?)";
+      PreparedStatement pst = pos_conn.prepareStatement(insertion_query);
 
       // Signaling start of test
       test_logger.info("--Start of test--");
+
       while (reader.hasNextLine()) {
 
         // Retrieving the data and preparing insertion script
         row = reader.nextLine();
         fields = row.split(",");
-        query = insertion_sql + fields[0] + "', " + fields[1] + ");";
+
+        // Casting timestamp
+        parsedDate = dateFormat.parse((String)fields[0]);
+        timestamp = new Timestamp(parsedDate.getTime());
+
+        // Inserting the variables in the prepared statement
+        pst.setTimestamp(1, timestamp);
+        pst.setInt(2, Integer.parseInt(fields[1]));
 
         // Executing the query and checking the result
-        try {
-          if (pos_stmt.executeUpdate(query) != 1) {
-              test_logger.severe("Problem executing the following script: \n"+query);
-          } else {
-              rows_inserted++;
-              test_logger.info("Query successfully executed: \n"+query);
-          }
-        } catch (SQLException e) {
-          test_logger.severe("Problem executing the following script: \n"+query);
-          e.printStackTrace();
+        if (pst.executeUpdate() != 1) {
+            test_logger.severe("Problem executing the query\n");
+        } else {
+            rows_inserted++;
+            test_logger.info("Query successfully executed: ("+fields[0]+","+fields[1]+")\n");
         }
       }
 
@@ -87,7 +102,14 @@ public class Insertion {
       System.out.println("An error occurred.");
       e.printStackTrace();
       test_logger.severe("Insertion: \""+configuration+"\" - problems with the execution");
+    } catch (SQLException e) {
+      test_logger.severe("Problem executing the script\n");
+      e.printStackTrace();
+    } catch (ParseException e) {
+      test_logger.severe("Problem with parsing a timestamp\n");
+      e.printStackTrace();
     }
+
 
     test_logger.info("Total rows inserted: "+rows_inserted);
   }
