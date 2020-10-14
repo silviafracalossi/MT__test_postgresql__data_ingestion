@@ -26,7 +26,6 @@ In the main directory, there is:
 
 ## Preparing an executable jar file
 Since I couldn't manage to find a way with the command line, I used Eclipse:
--   Create the folder `standalone`;
 -   Open the project in Eclipse;
 -   Set Java 8 as the default JRE:
     -   `Window > Preferences > Java > Installed JREs`;
