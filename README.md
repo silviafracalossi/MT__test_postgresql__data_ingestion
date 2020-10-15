@@ -49,7 +49,8 @@ Since I couldn't manage to find a way with the command line, I used Eclipse:
 
 ## Preparing the standalone version on the server
 -   Connect to the unibz VPN through Cisco AnyConnect;
--   Connect to the server through SSH and then:
+-   Open a terminal:
+    -   Execute `ssh -t sfracalossi@ironmaiden.inf.unibz.it "cd /data/sfracalossi ; bash"`;
     -   Execute `mkdir standalone_ingestion`;
     -   Execute `mkdir standalone_ingestion/resources`;
     -   Execute `mkdir standalone_ingestion/data`;
@@ -62,10 +63,3 @@ Since I couldn't manage to find a way with the command line, I used Eclipse:
 -   Execute the JAR file (use the terminal connected through SSH):
     -   Execute `cd standalone_ingestion`;
     -   Execute `java -jar DataIngestionTest.jar`.
-
-## To retrieve the logs from the server
--   Open the file `retrieve_data.sh`;
-    -   Define the variable `server` with the name of the server;
-    -   Define the variable `folder_name` with the name of the folder containing the log files;
-    -   Define the variable `file_names` with the names of the server files;
--   Execute `bash exec_retrieval.sh`.
