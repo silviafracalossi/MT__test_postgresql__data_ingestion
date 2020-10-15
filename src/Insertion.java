@@ -169,7 +169,7 @@ public class Insertion {
 
         // Executing the query and checking the result, if number of rows is enough
         if (no_rows_waiting == no_multiple_tuples) {
-          if (pst.executeUpdate() == 5) {
+          if (pst.executeUpdate() == no_multiple_tuples) {
             rows_inserted+=no_rows_waiting;
             test_logger.info("Query successfully executed: \n"+insertions);
             insertions = "";
