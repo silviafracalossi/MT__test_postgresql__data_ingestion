@@ -38,18 +38,15 @@ public class Insertion {
   public void insertTuples() {
 
     // Configuration 1: one tuple at a time
-    if (test_no == 0)   insertOneTupleAndMixedWorkload("One tuple at a time");
+    if (test_no == 0)   insertOneTuple();
 
     // Configuration 2: multiple tuples at a time
     if (test_no == 1)   insertMultipleTuples();
-
-    // Configuration 3: insertion while queries are executed
-    if (test_no == 2)   insertOneTupleAndMixedWorkload("Mixed Workload");
   }
 
 
   // Applying the "one tuple at a time" or the "mixed workload" configuration
-  public void insertOneTupleAndMixedWorkload(String configuration) {
+  public void insertOneTuple() {
 
     // Defining variables useful for method
     String[] fields;
@@ -100,7 +97,7 @@ public class Insertion {
     } catch (FileNotFoundException e) {
       System.out.println("An error occurred.");
       e.printStackTrace();
-      test_logger.severe("Insertion: \""+configuration+"\" - problems with the execution");
+      test_logger.severe("Insertion: \"One tuple at a time\" - problems with the execution");
     } catch (SQLException e) {
       test_logger.severe("Problem executing the script\n");
       e.printStackTrace();
