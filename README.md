@@ -7,7 +7,8 @@ Tester of the Postgresql ability of ingesting time series data
 -   `data/`, containing the printers parsed logs files in the format of CSV files;
 -   `logs/`, containing the log information of all the tests done;
 -   `resources/`, containing the postgresql driver, the database credentials file and the logger properties;
--   `src/`, containing the java source files.
+-   `src/`, containing the java source files;
+-   `standalone/`, containing the JAR standalone version of this repository.
 
 In the main directory, there is:
 -   `compile_and_run.bash`, a bash file containing the commands for compiling the java code and running it.
@@ -51,15 +52,16 @@ Since I couldn't manage to find a way with the command line, I used Eclipse:
 -   Connect to the unibz VPN through Cisco AnyConnect;
 -   Open a terminal:
     -   Execute `ssh -t sfracalossi@ironmaiden.inf.unibz.it "cd /data/sfracalossi ; bash"`;
-    -   Execute `mkdir standalone_ingestion`;
-    -   Execute `mkdir standalone_ingestion/resources`;
-    -   Execute `mkdir standalone_ingestion/data`;
+    -   Execute `mkdir postgresql`;
+    -   Execute `mkdir postgresql/standalone_ingestion`;
+    -   Execute `mkdir postgresql/standalone_ingestion/resources`;
+    -   Execute `mkdir postgresql/standalone_ingestion/data`;
 -   Send the JAR and the help files from another terminal (not connected through SSH):
-    -   Execute `scp standalone/DataIngestionTest.jar sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion`;
-    -   Execute `scp resources/server_postgresql_credentials.txt sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
-    -   Execute `scp resources/logging.properties sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/resources`;
+    -   Execute `scp standalone/DataIngestionTest.jar sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/postgresql/standalone_ingestion`;
+    -   Execute `scp resources/server_postgresql_credentials.txt sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/postgresql/standalone_ingestion/resources`;
+    -   Execute `scp resources/logging.properties sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/postgresql/standalone_ingestion/resources`;
 -   Send the data file:
-    -   Execute `scp data/TEMPERATURE.csv sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/standalone_ingestion/data`;
+    -   Execute `scp data/TEMPERATURE.csv sfracalossi@ironmaiden.inf.unibz.it:/data/sfracalossi/postgresql/standalone_ingestion/data`;
 -   Execute the JAR file (use the terminal connected through SSH):
     -   Execute `cd standalone_ingestion`;
-    -   Execute `java -jar DataIngestionTest.jar`.
+    -   Execute `nohup java -jar DataIngestionTest.jar [location_name] [l/s] [file_name_in_data_folder] > logs/out.txt &`.

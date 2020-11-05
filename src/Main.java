@@ -48,7 +48,25 @@ public class Main {
 
     try {
 
-      talkToUser();
+      // Getting information from user
+      if (args.length != 3) {
+        talkToUser();
+      } else {
+
+        // Getting the name of the location
+        location_no = returnStringIndex(location_types, args[0]);
+
+        // Understanding the DB required
+        if (args[1].compareTo("l") == 0) {
+          useServerPostgresDB = false;
+        }
+
+        // Understanding the data file name
+        File f = new File("data/"+args[2]);
+        if(f.exists() && !f.isDirectory()) {
+          data_file_path = "data/"+args[2];
+        }
+      }
 
       // Instantiate general logger
       Logger general_logger = instantiateLogger("general");
@@ -143,10 +161,9 @@ public class Main {
 
     System.out.println("3 questions for you!");
     String response = "";
-    boolean correct_answer = false;
+    boolean correct_answer;
 
     // Understanding where the script is executed
-    response = "";
     while (location_no == -1) {
       System.out.print("1. From which machine are you executing this script?"+
           " (Type \"ironmaiden\", \"ironlady\" or \"pc\"): ");
@@ -155,7 +172,6 @@ public class Main {
     }
 
     // Understanding whether the user wants the sever db or the local db
-    response = "";
     correct_answer = false;
     while (!correct_answer) {
       System.out.print("2. Where do you want it to be executed?"
