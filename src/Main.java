@@ -11,7 +11,7 @@ public class Main {
 
   // Store users' configurations - default settings written here
   static Scanner sc = new Scanner(System.in);
-  static int location_no=-1, insertion_no=-1, index_no=-1;
+  static int location_no=-1;
   static boolean useServerPostgresDB = true;
   static String data_file_path = "data/TEMPERATURE_DATA.csv";
 
@@ -174,7 +174,6 @@ public class Main {
     }
 
     // Understanding which file to run
-    response = "";
     correct_answer = false;
     while (!correct_answer) {
       System.out.print("3. Finally, inside the data folder, what is the name" +
@@ -205,7 +204,7 @@ public class Main {
       file_name += (location_no+1);
       logs_path += dateAsString+"__"+(location_no+1)+"/";
       File file = new File(logs_path);
-      boolean bool = file.mkdirs();
+      file.mkdirs();
     }
 
     // Instantiating general logger
